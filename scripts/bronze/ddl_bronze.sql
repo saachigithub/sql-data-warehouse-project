@@ -29,7 +29,7 @@ IF OBJECT_ID('bronze.crm_prd_info', 'U') IS NOT NULL
 GO
 
 CREATE TABLE bronze.crm_prd_info (
-	pro_id int,
+	prd_id int,
 	prd_key NVARCHAR(50),
 	prd_nm NVARCHAR(50),
 	prd_cost int,
