@@ -11,10 +11,6 @@ WARNING:
 	All the data in db will be permantely deleted. Proceed with caution 
 	and ensure have proper backups before running this script
 */
--- switched to master database
-USE master;
-
-GO
 
 -- Drop and recreate the 'DataWarehouse' db
 IF EXISTS (SELECT 1 FROM sys.databases WHERE name = 'DataWarehouse')
