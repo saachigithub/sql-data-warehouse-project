@@ -12,6 +12,9 @@ WARNING:
 	and ensure have proper backups before running this script
 */
 
+USE master;
+GO
+
 -- Drop and recreate the 'DataWarehouse' db
 IF EXISTS (SELECT 1 FROM sys.databases WHERE name = 'DataWarehouse')
 BEGIN
