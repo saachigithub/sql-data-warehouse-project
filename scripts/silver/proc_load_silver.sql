@@ -31,7 +31,7 @@ BEGIN
 		PRINT '----------------------------------------------';
 	
 		
-		-- Loading Silver.crm_cust_info
+		-- Loading silver.crm_cust_info
 		SET @start_time =GETDATE();
 		PRINT '>> Truncating Table: silver.crm_cust_info';
 		TRUNCATE TABLE silver.crm_cust_info;
@@ -54,12 +54,12 @@ BEGIN
 		CASE WHEN UPPER(TRIM(cst_marital_status)) ='S' THEN 'Single'
 			WHEN UPPER(TRIM(cst_marital_status)) = 'M' THEN 'Married'
 			ELSE 'n/a'
-		END cst_marital_status,
+		END cst_marital_status,  -- Normalize marital status values to readable format
 
 		CASE WHEN UPPER(TRIM(cst_gndr)) ='F' THEN 'FEMALE'
 			WHEN UPPER(TRIM(cst_gndr)) = 'M' THEN 'MALE'
 			ELSE 'n/a'
-		END cst_gndr,
+		END cst_gndr, -- Normalize gender values to readable format
 		cst_create_date
 		FROM(
 			SELECT *, 
@@ -67,13 +67,16 @@ BEGIN
 			FROM bronze.crm_cust_info 
 			WHERE cst_id IS NOT NULL
 		)t 
-		where flag_last = 1;
+		WHERE flag_last = 1;  -- Select the most recent record per customer
 
 		SET @end_time =GETDATE();
 		PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 		PRINT '>> -------------------------';
 
-		-- silver.crm_prd_info
+		-- ===============================================
+		-- Loading silver.crm_prd_info
+		-- ===============================================
+
 		SET @start_time =GETDATE();
 		PRINT '>> Truncating Table: silver.crm_prd_info';
 		TRUNCATE TABLE silver.crm_prd_info;
@@ -112,7 +115,7 @@ BEGIN
 		PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 		PRINT '>> ----------------------------';
 
-		-- silver.crm_sales_details
+		-- Loading crm_sales_details
 
 		SET @start_time =GETDATE();
 		PRINT '>> Truncating Table: silver.crm_sales_details';
@@ -150,24 +153,23 @@ BEGIN
 				CASE WHEN sls_sales IS NULL OR sls_sales <=0 OR sls_sales != sls_quantity *ABS(sls_price)
 					THEN sls_quantity * ABS(sls_price)
 					ELSE sls_sales
-				END AS sls_sales,
+				END AS sls_sales, -- Recalculate sales if original value is missing or incorrect
 				sls_quantity,
 
 				CASE WHEN sls_price IS NULL OR sls_price <=0
 					THEN sls_sales / NULLIF(sls_quantity ,0)
-					ELSE sls_price
+					ELSE sls_price -- Derive price if original value is invalid
 				END AS sls_price
 			FROM bronze.crm_sales_details;
 
 		SET @end_time =GETDATE();
 		PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
-		PRINT '>> ------------------------------------------';
 
 		PRINT'----------------------------------------------';
 		PRINT 'Loading ERP Table';
 		PRINT '---------------------------------------------';
 
-			-- silver.erp_cust_az12
+		-- Loading silver.erp_cust_az12
 		SET @start_time = GETDATE();
 		PRINT '>> Truncating Table: silver.erp_cust_az12';
 		TRUNCATE TABLE silver.erp_cust_az12;
@@ -216,7 +218,7 @@ BEGIN
 		PRINT '>> Load Duration: ' + CAST(DATEDIFF(SECOND, @start_time, @end_time) AS NVARCHAR) + ' seconds';
 		PRINT '>> ---------------------------';
 
-		-- silver.erp_px_cat_g1v2
+		-- Loading silver.erp_px_cat_g1v2
 		SET @start_time =GETDATE();
 		PRINT '>> Truncating Table: silver.erp_px_cat_g1v2';
 		TRUNCATE TABLE silver.erp_px_cat_g1v2;
@@ -243,7 +245,7 @@ BEGIN
 	END TRY
 	BEGIN CATCH
 		PRINT'==================================';
-		PRINT 'Error Occurred Loading BRONZE LAYER';
+		PRINT 'Error Occurred During Loading BRONZE LAYER';
 		PRINT 'Error Message' + ERROR_MESSAGE();
 		PRINT 'Error Message' + CAST(ERROR_NUMBER() AS NVARCHAR);
 		PRINT 'Error Message' + CAST(ERROR_STATE() AS NVARCHAR);
